@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UML Diagram Validator</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+</head>
+<body>
+    <div class="container">
+        <h1>UML Class Diagram Validator</h1>
+        <p>Upload a UML class diagram image to check if it’s a valid diagram.</p>
+
+        <form id="uploadForm">
+            <div class="file-input-container">
+                <input
+                    type="file"
+                    name="image"
+                    id="imageInput"
+                    accept="image/*"
+                    required
+                />
+                <label for="imageInput">Choose an Image</label>
+            </div>
+            <div class="button-container">
+                <button type="submit" class="upload-button">Upload and Validate</button>
+                <button type="button" id="clearButton" class="clear-button" style="display: none">Clear</button>
+            </div>
+        </form>
+
+        <div id="previewContainer" class="preview-container" style="display: none">
+            <h2>Image Preview:</h2>
+            <img id="imagePreview" src="" alt="Image Preview" />
+        </div>
+
+        <div id="resultsContainer">
+            <h2>Validation Results:</h2>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("uploadForm");
+        const imageInput = document.getElementById("imageInput");
+        const imagePreview = document.getElementById("imagePreview");
+        const previewContainer = document.getElementById("previewContainer");
+        const resultsDiv = document.getElementById("results");
+        const clearButton = document.getElementById("clearButton");
+
+        // Show image preview and clear button
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    previewContainer.style.display = "block";
+                    clearButton.style.display = "inline-block"; // Show clear button
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+
+            // Format each result item as a separate line, removing brackets and quotes
+            resultsDiv.innerHTML = result.results
+                .map((item) => `<p>${item}</p>`)
+                .join("");
+        });
+
+        // Clear the uploaded image and reset the form
+        clearButton.addEventListener("click", () => {
+            imageInput.value = ""; // Reset file input
+            imagePreview.src = ""; // Clear image preview
+            previewContainer.style.display = "none"; // Hide preview container
+            clearButton.style.display = "none"; // Hide clear button
+            resultsDiv.innerHTML = ""; // Clear results
+        });
+    </script>
+</body>
+</html>
+ 
