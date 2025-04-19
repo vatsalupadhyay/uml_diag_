@@ -13,7 +13,6 @@ def preprocess_image(image_path):
     edges = cv2.Canny(binary_img, 50, 150)
     return binary_img
 
-
 def detect_shapes(preprocessed_image):
     # Detect contours which correspond to shapes
     contours, _ = cv2.findContours(preprocessed_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

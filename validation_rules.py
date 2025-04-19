@@ -1,45 +1,55 @@
 import re
 
 # Regex patterns for checking attributes and methods
-ATTRIBUTE_PATTERN = r'\b\w+\s*:\s*\w+\b'  # Example: attribute_name: int
-METHOD_PATTERN = r'\b\w+\s*\(.*\)\s*:\s*\w+\b'  # Example: method_name(param: int): void
+ATTRIBUTE_PATTERN = r'[-+]?\s*\w+\s*:\s*\w+(?:\[\])?'  # Handles arrays and optional visibility
+METHOD_PATTERN = r'[-+]?\s*\w+\s*\([^)]*\)(?:\s*:\s*\w+)?'  # More flexible method pattern
 
-def validate_class_diagram(shapes, texts):
+def validate_class_diagram(extracted_texts):
     errors = []
-    if not shapes or not texts:
-        return ["No shapes or text detected in the UML diagram."]
+    if not extracted_texts:
+        return ["No text blocks detected in the UML diagram."]
     
-    for i, text in enumerate(texts):
-        if not text.strip():
-            errors.append(f"Class {i + 1} is missing a name.")
+    for text_block in extracted_texts:
+        lines = text_block.split("\n")
+        if not lines:
             continue
-
-        # Extract different sections from the class text (assuming OCR output contains class name, attributes, and methods)
-        class_sections = text.split("\n")
-        class_name = class_sections[0]
-        attributes = [line for line in class_sections if re.search(ATTRIBUTE_PATTERN, line)]
-        methods = [line for line in class_sections if re.search(METHOD_PATTERN, line)]
-
-        # Rule 1: Class Naming
-        if not class_name or len(class_name.split()) < 2:
-            errors.append(f"Class {i + 1} does not have a meaningful name.")
+            
+        # Extract class name (more flexible)
+        class_name = None
+        for line in lines:
+            # Skip common OCR artifacts and headers
+            if line.strip() and not line.lower().startswith(('class:', 'attributes:', 'methods:', 'block')):
+                class_name = line.strip()
+                break
         
-        # Rule 2: Attributes (Ensure that each class has attributes with correct data types)
-        if not attributes:
-            errors.append(f"Class {i + 1} is missing attributes or they are not properly defined with data types.")
+        if not class_name:
+            continue  # Skip if no class name found
+            
+        # Check for attributes and methods with more flexible patterns
+        attributes = []
+        methods = []
         
-        # Rule 3: Methods (Ensure that methods have return types and parameters)
-        if not methods:
-            errors.append(f"Class {i + 1} is missing methods or they are not properly defined.")
+        for line in lines[1:]:  # Skip the class name line
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Clean up common OCR artifacts
+            line = line.replace('|', 'I').replace('[]', '').replace('{}', '()')
+            
+            if '(' in line and ')' in line:
+                if re.search(METHOD_PATTERN, line):
+                    methods.append(line)
+            elif ':' in line:
+                if re.search(ATTRIBUTE_PATTERN, line):
+                    attributes.append(line)
         
-        # Rule 4: Visibility (Ensure visibility symbols like +, -, # are present)
-        if not any(symbol in text for symbol in ['+', '-', '#']):
-            errors.append(f"Class {i + 1} is missing visibility symbols (public, private, or protected).")
-        
-        # Rule 5: Inheritance (Check for inheritance arrows or proper notation)
-        # Note: Inheritance check would require graphical analysis, but we can assume class relationships are given as text.
-
-        # Rule 6: Associations, Aggregation, Composition, Multiplicity
-        # These would generally be checked graphically (lines and arrows between classes), so skip for now unless you integrate shape analysis.
-
+        # Only add errors if we found a valid class but missing components
+        if class_name and not attributes and not methods:
+            errors.append(f"Class {class_name} appears to be missing both attributes and methods")
+        elif class_name and not attributes:
+            errors.append(f"Class {class_name} appears to be missing attributes")
+        elif class_name and not methods:
+            errors.append(f"Class {class_name} appears to be missing methods")
+    
     return errors if errors else ["Valid UML class diagram."]
