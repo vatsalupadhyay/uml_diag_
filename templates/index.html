@@ -3,58 +3,396 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UML Diagram Validator</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
+    <title>UML Class Diagram Code Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+      /* Base styles */
+      body {
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Header styles */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .header h1 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      /* Upload section styles */
+      .upload-section {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .file-input-container {
+        border: 2px dashed #007bff;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .file-input-container.highlight {
+        border-color: #28a745;
+        background-color: rgba(40, 167, 69, 0.1);
+      }
+
+      .file-input-container input[type="file"] {
+        display: none;
+      }
+
+      .file-label {
+        cursor: pointer;
+        display: block;
+      }
+
+      .file-label i {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 1rem;
+      }
+
+      .file-name {
+        margin-top: 0.5rem;
+        color: #666;
+      }
+
+      /* Button styles */
+      .button-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      .upload-button, .clear-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .upload-button {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .clear-button {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      .upload-button:hover {
+        background-color: #0056b3;
+      }
+
+      .clear-button:hover {
+        background-color: #c82333;
+      }
+
+      /* Preview section styles */
+      .preview-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .preview-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .preview-content {
+        text-align: center;
+      }
+
+      .preview-content img {
+        max-width: 100%;
+        border-radius: 5px;
+      }
+
+      /* Results section styles */
+      .results-container, .classes-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .result-item {
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .result-item.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .result-item.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      /* Code section styles */
+      .code-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .code-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .copy-button, .download-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .copy-button {
+        background-color: #6c757d;
+        color: white;
+      }
+
+      .download-button {
+        background-color: #28a745;
+        color: white;
+      }
+
+      .copy-button:hover {
+        background-color: #5a6268;
+      }
+
+      .download-button:hover {
+        background-color: #218838;
+      }
+
+      .code-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+
+      .code-tab {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #e9ecef;
+        color: #495057;
+        transition: all 0.3s ease;
+      }
+
+      .code-tab.active {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .code-display {
+        background-color: #1e1e1e;
+        border-radius: 5px;
+        padding: 1rem;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .code-display pre {
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Class cards styles */
+      .classes-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+      }
+
+      .class-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid #dee2e6;
+      }
+
+      .class-card h3 {
+        color: #2c3e50;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+      }
+
+      .class-attributes, .class-methods {
+        margin-bottom: 1rem;
+      }
+
+      .class-attributes h4, .class-methods h4 {
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      .class-attributes ul, .class-methods ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 0;
+      }
+
+      .class-attributes li, .class-methods li {
+        padding: 0.25rem 0;
+        color: #666;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+      }
+
+      /* Footer styles */
+      .footer {
+        text-align: center;
+        padding: 1rem;
+        color: #6c757d;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
-      <h1>UML Class Diagram Code Automation</h1>
-      <p>Upload a UML class diagram image to check if it’s a valid diagram.</p>
+      <header class="header">
+        <h1><i class="fas fa-project-diagram"></i> UML Class Diagram Code Automation</h1>
+        <p class="subtitle">Upload a UML class diagram image to validate and generate code</p>
+      </header>
 
-      <form id="uploadForm">
-        <div class="file-input-container">
-          <input
-            type="file"
-            name="image"
-            id="imageInput"
-            accept="image/*"
-            required
-          />
-          <label for="imageInput">Choose an Image</label>
+      <main class="main-content">
+        <div class="upload-section">
+          <form id="uploadForm" class="upload-form">
+            <div class="file-input-container">
+              <input type="file" name="file" id="imageInput" accept="image/*" required />
+              <label for="imageInput" class="file-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Choose an Image</span>
+                <span class="file-name"></span>
+              </label>
+            </div>
+            <div class="button-container">
+              <button type="submit" class="upload-button">
+                <i class="fas fa-check"></i> Generate Code
+              </button>
+              <button type="button" id="clearButton" class="clear-button" style="display: none">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="button-container">
-          <button type="submit" class="upload-button">
-            Upload and Validate
-          </button>
-          <button
-            type="button"
-            id="clearButton"
-            class="clear-button"
-            style="display: none"
-          >
-            Clear
-          </button>
+
+        <div id="previewContainer" class="preview-container" style="display: none">
+          <div class="preview-header">
+            <h2><i class="fas fa-image"></i> Image Preview</h2>
+          </div>
+          <div class="preview-content">
+            <img id="imagePreview" src="" alt="Image Preview" />
+          </div>
         </div>
-      </form>
 
-      <div
-        id="previewContainer"
-        class="preview-container"
-        style="display: none"
-      >
-        <h2>Image Preview:</h2>
-        <img id="imagePreview" src="" alt="Image Preview" />
-      </div>
+        <div id="resultsContainer" class="results-container" style="display: none">
+          <div class="results-header">
+            <h2><i class="fas fa-clipboard-check"></i> Validation Results</h2>
+          </div>
+          <div id="results" class="results-content"></div>
+        </div>
 
-      <!-- Results container is hidden initially -->
-      <div id="resultsContainer" style="display: none">
-        <h2>Validation Results:</h2>
-        <div id="results"></div>
-      </div>
+        <div id="classesContainer" class="classes-container" style="display: none">
+          <div class="classes-header">
+            <h2><i class="fas fa-cubes"></i> Detected Classes</h2>
+          </div>
+          <div id="classesList" class="classes-list"></div>
+        </div>
+
+        <div id="codeContainer" class="code-container" style="display: none">
+          <div class="code-header">
+            <h2><i class="fas fa-code"></i> Generated Java Code</h2>
+            <div class="code-actions">
+              <button id="copyButton" class="copy-button">
+                <i class="fas fa-copy"></i> Copy Code
+              </button>
+              <button id="downloadButton" class="download-button">
+                <i class="fas fa-download"></i> Download All
+              </button>
+            </div>
+          </div>
+          <div class="code-content">
+            <div id="codeTabs" class="code-tabs"></div>
+            <div id="codeDisplay" class="code-display">
+              <pre><code id="generatedCode" class="language-java"></code></pre>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <p>Drag and drop your image or click to upload</p>
+      </footer>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
       const form = document.getElementById("uploadForm");
@@ -63,56 +401,478 @@
       const previewContainer = document.getElementById("previewContainer");
       const resultsDiv = document.getElementById("results");
       const resultsContainer = document.getElementById("resultsContainer");
+      const codeContainer = document.getElementById("codeContainer");
+      const classesContainer = document.getElementById("classesContainer");
+      const classesList = document.getElementById("classesList");
+      const generatedCode = document.getElementById("generatedCode");
+      const copyButton = document.getElementById("copyButton");
+      const downloadButton = document.getElementById("downloadButton");
       const clearButton = document.getElementById("clearButton");
-
-      // Show image preview and clear button
+      const fileName = document.querySelector(".file-name");
+      const codeTabs = document.getElementById("codeTabs");
+      
+      let generatedClasses = null;
+      
       imageInput.addEventListener("change", () => {
         const file = imageInput.files[0];
         if (file) {
+          fileName.textContent = file.name;
           const reader = new FileReader();
           reader.onload = () => {
             imagePreview.src = reader.result;
             previewContainer.style.display = "block";
-            clearButton.style.display = "inline-block"; // Show clear button
+            clearButton.style.display = "inline-block";
           };
           reader.readAsDataURL(file);
         }
       });
-
-      // Handle form submission
+      
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(form);
-
-        // Disable the "Upload and Validate" button while processing
+      
         const submitButton = form.querySelector(".upload-button");
         submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          
+          console.log('Server response:', result);
+      
+          // Always display the results container regardless of success or error
+          resultsContainer.style.display = "block";
+          
+          if (result.error) {
+            if (result.error === "No valid classes detected in the image.") {
+              // Display the specific error message for no valid classes
+              resultsDiv.innerHTML = `
+                <div class="validation-container">
+  <!-- Header -->
+  <div class="validation-header">
+    <i class="fas fa-file-code"></i> UML Validation Results
+  </div>
+  
+  <!-- Error Message -->
+  <div class="validation-error">
+    <i class="fas fa-times-circle"></i> No valid classes detected in the image.
+  </div>
+  
+  <!-- Main Issues Section -->
+   <br>
+  <div class="validation-section issues-section">
+    <div class="section-header">
+      <i class="fas fa-exclamation-triangle"></i> Main Issues:
+    </div>
+       <br>
 
-        const response = await fetch("/upload", {
-          method: "POST",
-          body: formData,
+    <ul class="issue-list">
+      <li><i class="fas fa-circle error-dot"></i> No proper class structures found in the diagram</li>
+      <li><i class="fas fa-circle error-dot"></i> Missing class compartments (name, attributes, methods)</li>
+      <li><i class="fas fa-circle error-dot"></i> Class boundaries not clearly defined</li>
+      <li><i class="fas fa-circle error-dot"></i> Improper UML class notation</li>
+    </ul>
+  </div>
+  <br>
+  <!-- UML Requirements Section -->
+  <div class="validation-section requirements-section">
+    <div class="section-header">
+      <i class="fas fa-clipboard-check"></i> UML Requirements:
+    </div>
+       <br>
+
+    <ul class="requirements-list">
+      <li><i class="fas fa-check"></i> Class names must start with a capital letter</li>
+      <li><i class="fas fa-check"></i> Attributes should have visibility indicators (+ or -)</li>
+      <li><i class="fas fa-check"></i> Methods should include parentheses and return types</li>
+      <li><i class="fas fa-check"></i> Each class should have at least one attribute or method</li>
+    </ul>
+  </div>
+</div>`;
+            } else {
+              // Display generic error message
+              resultsDiv.innerHTML = `<div class="result-item error"><i class="fas fa-exclamation-circle"></i> ${result.error}</div>`;
+            }
+            
+            // Hide other containers for error case
+            classesContainer.style.display = "none";
+            codeContainer.style.display = "none";
+          } else {
+            // Success case
+            resultsDiv.innerHTML = `<div class="result-item success"><i class="fas fa-check-circle"></i> ${result.message}</div>`;
+            
+            // Display classes and code if available
+            if (result.classes && result.classes.length > 0) {
+              generatedClasses = result.classes;
+              classesContainer.style.display = "block";
+              displayClasses(result.classes);
+              
+              codeContainer.style.display = "block";
+              displayCode(result.classes);
+            }
+          }
+      
+        } catch (error) {
+          console.error('Error:', error);
+          resultsContainer.style.display = "block";
+          resultsDiv.innerHTML = `<div class="result-item error"><i class="fas fa-exclamation-circle"></i> Error: ${error.message}</div>`;
+          
+          // Hide other containers
+          classesContainer.style.display = "none";
+          codeContainer.style.display = "none";
+        } finally {
+          submitButton.disabled = false;
+          submitButton.innerHTML = '<i class="fas fa-check"></i> Generate Code';
+        }
+      });
+      
+      function displayClasses(classes) {
+        classesList.innerHTML = '';
+        classes.forEach(cls => {
+          const classCard = document.createElement('div');
+          classCard.className = 'class-card';
+          
+          classCard.innerHTML = `<h3>${cls.name}</h3>`;
+          
+          const attributesDiv = document.createElement('div');
+          attributesDiv.className = 'class-attributes';
+          attributesDiv.innerHTML = '<h4>Attributes:</h4>';
+          
+          if (cls.attributes && cls.attributes.length > 0) {
+            const attrList = document.createElement('ul');
+            cls.attributes.forEach(attr => {
+              if (typeof attr === 'object' && attr !== null) {
+                const keys = Object.keys(attr);
+                if (keys.includes('name') && keys.includes('type')) {
+                  const li = document.createElement('li');
+                  li.textContent = `${attr.name}: ${attr.type}`;
+                  attrList.appendChild(li);
+                } else {
+                  keys.forEach(key => {
+                    const li = document.createElement('li');
+                    li.textContent = `${key}: ${attr[key]}`;
+                    attrList.appendChild(li);
+                  });
+                }
+              } else {
+                const li = document.createElement('li');
+                li.textContent = attr;
+                attrList.appendChild(li);
+              }
+            });
+            attributesDiv.appendChild(attrList);
+          } else {
+            attributesDiv.innerHTML += '<p>No attributes</p>';
+          }
+          
+          const methodsDiv = document.createElement('div');
+          methodsDiv.className = 'class-methods';
+          methodsDiv.innerHTML = '<h4>Methods:</h4>';
+          
+          if (cls.methods && cls.methods.length > 0) {
+            const methodList = document.createElement('ul');
+            cls.methods.forEach(method => {
+              if (typeof method === 'object' && method !== null) {
+                if (method.name) {
+                  const li = document.createElement('li');
+                  li.textContent = method.name;
+                  methodList.appendChild(li);
+                } else {
+                  const keys = Object.keys(method);
+                  keys.forEach(key => {
+                    const li = document.createElement('li');
+                    li.textContent = key;
+                    methodList.appendChild(li);
+                  });
+                }
+              } else {
+                const li = document.createElement('li');
+                li.textContent = method;
+                methodList.appendChild(li);
+              }
+            });
+            methodsDiv.appendChild(methodList);
+          } else {
+            methodsDiv.innerHTML += '<p>No methods</p>';
+          }
+          
+          classCard.appendChild(attributesDiv);
+          classCard.appendChild(methodsDiv);
+          
+          classesList.appendChild(classCard);
         });
-        const result = await response.json();
-
-        // Show the results container and populate it with the validation results
-        resultsContainer.style.display = "block";
-        resultsDiv.innerHTML = result.results
-          .map((item) => `<p>${item}</p>`)
-          .join("");
-
-        // Re-enable the "Upload and Validate" button after processing
-        submitButton.disabled = false;
+      }
+      
+      function displayCode(classes) {
+        codeTabs.innerHTML = classes.map((cls, index) => `
+          <button class="code-tab ${index === 0 ? 'active' : ''}" data-class="${cls.name}">
+            ${cls.name}
+          </button>
+        `).join('');
+      
+        if (classes.length > 0) {
+          displayClassCode(classes[0]);
+        }
+      
+        codeTabs.querySelectorAll('.code-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            const className = tab.dataset.class;
+            const classData = classes.find(c => c.name === className);
+            if (classData) {
+              displayClassCode(classData);
+              // Update active tab
+              codeTabs.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+              tab.classList.add('active');
+            }
+          });
+        });
+      }
+      
+      function displayClassCode(classData) {
+        fetch(`/output_codes/generated/${classData.name}.java`)
+          .then(response => response.text())
+          .then(code => {
+            generatedCode.textContent = code;
+            Prism.highlightElement(generatedCode);
+          })
+          .catch(error => {
+            console.error('Error fetching Java code:', error);
+            generatedCode.textContent = '// Error loading code';
+            Prism.highlightElement(generatedCode);
+          });
+      }
+      
+      copyButton.addEventListener("click", async () => {
+        try {
+          const codeText = generatedCode.textContent;
+          await navigator.clipboard.writeText(codeText);
+          copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          setTimeout(() => {
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy code:', err);
+          copyButton.innerHTML = '<i class="fas fa-times"></i> Failed to copy';
+          setTimeout(() => {
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+          }, 2000);
+        }
       });
-
-      // Clear the uploaded image and reset the form
+      
+      downloadButton.addEventListener("click", async () => {
+        if (!generatedClasses) {
+          alert('No code available to download');
+          return;
+        }
+      
+        try {
+          const zip = new JSZip();
+      
+          // Fetch all Java files from the server
+          const fetchPromises = generatedClasses.map(cls =>
+            fetch(`/output_codes/generated/${cls.name}.java`)
+              .then(response => response.text())
+              .then(code => ({ name: cls.name, code }))
+          );
+      
+          const files = await Promise.all(fetchPromises);
+          files.forEach(file => {
+            zip.file(`${file.name}.java`, file.code);
+          });
+      
+          const content = await zip.generateAsync({ type: "blob" });
+          const url = window.URL.createObjectURL(content);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'generated_classes.zip';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+      
+          downloadButton.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+          setTimeout(() => {
+            downloadButton.innerHTML = '<i class="fas fa-download"></i> Download All';
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to download code:', err);
+          downloadButton.innerHTML = '<i class="fas fa-times"></i> Failed to download';
+          setTimeout(() => {
+            downloadButton.innerHTML = '<i class="fas fa-download"></i> Download All';
+          }, 2000);
+        }
+      });
+      
       clearButton.addEventListener("click", () => {
-        imageInput.value = ""; // Reset file input
-        imagePreview.src = ""; // Clear image preview
-        previewContainer.style.display = "none"; // Hide preview container
-        clearButton.style.display = "none"; // Hide clear button
-        resultsContainer.style.display = "none"; // Hide results container
-        resultsDiv.innerHTML = ""; // Clear results
+        imageInput.value = "";
+        imagePreview.src = "";
+        previewContainer.style.display = "none";
+        clearButton.style.display = "none";
+        fileName.textContent = "";
+        resultsContainer.style.display = "none";
+        classesContainer.style.display = "none";
+        codeContainer.style.display = "none";
+        generatedClasses = null;
       });
+      
+      const dropZone = document.querySelector('.file-input-container');
+      
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight(e) {
+        dropZone.classList.add('highlight');
+      }
+      
+      function unhighlight(e) {
+        dropZone.classList.remove('highlight');
+      }
+      
+      dropZone.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        imageInput.files = files;
+        imageInput.dispatchEvent(new Event('change'));
+      }
+
+      function showError(errorMsg) {
+        const resultsContainer = document.querySelector('.results-container');
+        resultsContainer.innerHTML = '';
+
+        if (errorMsg === "No valid classes detected in the image.") {
+          resultsContainer.innerHTML = `
+            <div class="uml-validation-results">
+              <div class="alert alert-danger">
+                <strong>No valid classes detected in the image.</strong>
+              </div>
+              <div class="card mb-3">
+                <div class="card-header">
+                  <span style="color: #e74c3c;">&#9888;</span> Main Issues:
+                </div>
+                <div class="card-body">
+                  <ul>
+                    <li>No proper class structures found in the diagram</li>
+                    <li>Missing class compartments (name, attributes, methods)</li>
+                    <li>Class boundaries not clearly defined</li>
+                    <li>Improper UML class notation</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <span style="color: #27ae60;">&#10003;</span> UML Requirements:
+                </div>
+                <div class="card-body">
+                  <ul>
+                    <li>Class names must start with a capital letter</li>
+                    <li>Attributes should have visibility indicators (+ or -)</li>
+                    <li>Methods should include parentheses and return types</li>
+                    <li>Each class should have at least one attribute or method</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          resultsContainer.innerHTML = `
+            <div class="result-item error">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>${errorMsg}</strong>
+            </div>
+          `;
+        }
+      }
+
+      function handleUploadResponse(response) {
+        const resultsContainer = document.querySelector('.results-container');
+        const classesContainer = document.querySelector('.classes-container');
+        
+        resultsContainer.innerHTML = '';
+        classesContainer.innerHTML = '';
+        
+        if (response.error) {
+          showError(response.error);
+          return;
+        }
+
+        // Show success message
+        const successMessage = document.createElement('div');
+        successMessage.className = 'result-item success';
+        successMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${response.message}`;
+        resultsContainer.appendChild(successMessage);
+
+        // Display generated classes
+        response.classes.forEach(classInfo => {
+          const classCard = document.createElement('div');
+          classCard.className = 'class-card';
+          
+          // Create class header
+          const classHeader = document.createElement('div');
+          classHeader.className = 'class-header';
+          classHeader.innerHTML = `<h3>${classInfo.name}</h3>`;
+          
+          // Create code container
+          const codeContainer = document.createElement('div');
+          codeContainer.className = 'code-container';
+          
+          // Create code content
+          const codeContent = document.createElement('pre');
+          codeContent.className = 'language-java';
+          
+          // Fetch and display the actual Java code
+          fetch(`/output_codes/generated/${classInfo.name}.java`)
+            .then(response => response.text())
+            .then(code => {
+              codeContent.innerHTML = `<code class="language-java">${code}</code>`;
+              Prism.highlightElement(codeContent);
+            })
+            .catch(error => {
+              console.error('Error fetching Java code:', error);
+              codeContent.innerHTML = '<code class="language-java">// Error loading code</code>';
+            });
+          
+          // Add copy button
+          const copyButton = document.createElement('button');
+          copyButton.className = 'copy-button';
+          copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+          copyButton.onclick = () => {
+            navigator.clipboard.writeText(codeContent.textContent)
+              .then(() => {
+                copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                  copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+                }, 2000);
+              });
+          };
+          
+          // Assemble the components
+          codeContainer.appendChild(codeContent);
+          codeContainer.appendChild(copyButton);
+          classCard.appendChild(classHeader);
+          classCard.appendChild(codeContainer);
+          classesContainer.appendChild(classCard);
+        });
+      }
     </script>
   </body>
-</html>
+</html> 

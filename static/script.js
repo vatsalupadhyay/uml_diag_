@@ -26,3 +26,5 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
         console.error("Error:", error);
     }
 });
+
+
